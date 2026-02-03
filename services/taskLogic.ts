@@ -36,7 +36,11 @@ export const addTask = async (input: NewTaskInput): Promise<string> => {
 
   // Firestore does not accept 'undefined', so we must sanitize the input
   const safeInput = { ...input };
-  if (safeInput.reminderTime === undefined) delete safeInput.reminderTime;
+  Object.keys(safeInput).forEach(key => {
+    if (safeInput[key as keyof NewTaskInput] === undefined) {
+      delete safeInput[key as keyof NewTaskInput];
+    }
+  });
 
   const newTask = {
     ...safeInput,

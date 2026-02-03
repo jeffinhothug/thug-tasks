@@ -75,7 +75,6 @@ const App: React.FC = () => {
 
     const checkDueTasks = () => {
       const now = dayjs();
-
       const tasks = [...pendingTasks];
 
       tasks.forEach(task => {
@@ -83,34 +82,41 @@ const App: React.FC = () => {
 
         let shouldNotify = false;
         let message = '';
+        const notifiedKey = `notified-${task.id}-${dayjs().format('YYYY-MM-DD-HH')}`; // Hourly key-check to avoid massive spam but allow reminders
+
+        // Skip if recently notified (simple throttle)
+        if (localStorage.getItem(notifiedKey)) return;
 
         if (task.reminderTime) {
           // Precise time notification
           const reminder = dayjs(task.reminderTime);
           const diffInMinutes = reminder.diff(now, 'minute');
 
-          // Notify if within near future window (0 to 30 mins)
-          if (diffInMinutes >= 0 && diffInMinutes <= 30) {
+          // Notify if within window (0 to 15 mins)
+          if (diffInMinutes >= 0 && diffInMinutes <= 15) {
             shouldNotify = true;
-            message = `Lembrete: "${task.title}" é agora (${reminder.format('HH:mm')})!`;
+            message = `⏰ Lembrete: "${task.title}" é às ${reminder.format('HH:mm')}!`;
           }
         } else {
-          // Standard due date (day based)
+          // All Day (Data de Hoje)
           const dueDate = dayjs(task.dueDate);
-          const diffInHours = dueDate.diff(now, 'hour');
 
-          // Notify if due within 24 hours (Urgent context)
-          if (diffInHours >= 0 && diffInHours <= 24 && task.priority === TaskPriority.HIGH) {
+          // Se a data for hoje
+          if (dueDate.isSame(now, 'day')) {
+            // Notificar uma vez pela manhã ou se o usuário abrir o app?
+            // Vamos notificar se for 'High Priority' ou apenas avisar periodicamente
+            // Simplificação: Avisar que é tarefa para HOJE (O Dia Todo)
             shouldNotify = true;
-            message = `Tarefa urgente: "${task.title}" vence em breve!`;
+            message = `📅 Para Hoje (O Dia Todo): "${task.title}"`;
           }
         }
 
         if (shouldNotify) {
-          new Notification('Thug Tasks Aviso', {
+          new Notification('Thug Tasks', {
             body: message,
             icon: '/icon.svg'
           });
+          localStorage.setItem(notifiedKey, 'true');
         }
       });
     };
@@ -176,7 +182,8 @@ const App: React.FC = () => {
       showToast('Missão adicionada!');
     } catch (error) {
       console.error(error);
-      showToast('Erro ao criar tarefa rápida.', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      showToast(`Erro ao criar rápida: ${errorMessage}`, 'error');
     }
   };
 
