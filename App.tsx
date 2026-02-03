@@ -273,7 +273,7 @@ const App: React.FC = () => {
         <div className="md:hidden p-4 border-b border-zinc-800 sticky top-0 bg-background/90 backdrop-blur-md z-10 flex flex-col gap-3">
           <div className="flex justify-between items-center">
             <div className="flex flex-col">
-              <span className="text-[10px] font-mono text-zinc-600">v1.4 (Cloud Only)</span>
+              <span className="text-[10px] font-mono text-zinc-600">v1.5 (Cloud Only)</span>
               <span className={`text-[10px] font-bold ${authUserId ? "text-green-600" : "text-red-500"}`}>
                 {authUserId ? "Online" : "Desconectado"}
               </span>

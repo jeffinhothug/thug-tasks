@@ -166,34 +166,35 @@ const TaskForm: React.FC<Props> = ({ isOpen, onClose, onSubmit, initialData, onD
             </div>
           </div>
 
-          <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 flex justify-end gap-3">
-            <button
-              type="button"
-            <div className="flex gap-3">
+          <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 flex justify-between items-center gap-3">
+            <div>
               {initialData?.title && onDelete && (
                 <button
                   type="button"
                   onClick={onDelete}
-                  className="px-4 py-2 text-sm text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors mr-auto"
+                  className="px-4 py-2 text-sm text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                  title="Excluir"
                 >
                   <Trash2 size={18} />
                 </button>
               )}
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-sky-900/20 disabled:opacity-50"
-            >
-              {loading ? 'Salvando...' : 'Salvar'}
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-sky-900/20 disabled:opacity-50"
+              >
+                {loading ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
           </div>
 
         </form>
