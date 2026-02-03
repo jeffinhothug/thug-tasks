@@ -41,9 +41,9 @@ export const addTask = async (input: NewTaskInput): Promise<string> => {
     createdAt: new Date().toISOString()
   };
 
-  // Timeout protection
+  // Timeout protection (Increased to 30s to avoid false positives on slow networks)
   const timeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("Timeout ao salvar. Verifique sua conexão.")), 10000)
+    setTimeout(() => reject(new Error("O servidor demorou para responder, mas sua missão deve ter sido salva localmente.")), 30000)
   );
 
   const docRef = await Promise.race([
@@ -78,7 +78,7 @@ export const deleteTask = async (id: string) => {
 
 // --- Subscriptions ---
 
-export const subscribeToPendingTasks = (callback: (tasks: Task[]) => void) => {
+export const subscribeToPendingTasks = (callback: (tasks: Task[]) => void, onError?: (error: Error) => void) => {
   const q = query(
     collection(db, COLLECTION_NAME),
     where("isCompleted", "==", false)
@@ -95,10 +95,13 @@ export const subscribeToPendingTasks = (callback: (tasks: Task[]) => void) => {
     });
 
     callback(tasks);
+  }, (error) => {
+    console.error("Erro no subscribePending:", error);
+    if (onError) onError(error);
   });
 };
 
-export const subscribeToCompletedTasks = (callback: (tasks: Task[]) => void) => {
+export const subscribeToCompletedTasks = (callback: (tasks: Task[]) => void, onError?: (error: Error) => void) => {
   const q = query(
     collection(db, COLLECTION_NAME),
     where("isCompleted", "==", true)
@@ -109,6 +112,9 @@ export const subscribeToCompletedTasks = (callback: (tasks: Task[]) => void) => 
     // Sort by completedAt desc
     tasks.sort((a, b) => dayjs(b.completedAt).unix() - dayjs(a.completedAt).unix());
     callback(tasks);
+  }, (error) => {
+    console.error("Erro no subscribeCompleted:", error);
+    if (onError) onError(error);
   });
 };
 

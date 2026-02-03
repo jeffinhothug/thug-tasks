@@ -46,7 +46,10 @@ const App: React.FC = () => {
   // Initialization
   useEffect(() => {
     // 1. Subscribe to data
-    const unsubscribePending = subscribeToPendingTasks(setPendingTasks);
+    const unsubscribePending = subscribeToPendingTasks(
+      setPendingTasks,
+      (error) => showToast(`Erro de conexão: ${error.message}`, 'error')
+    );
     const unsubscribeCompleted = subscribeToCompletedTasks(setCompletedTasks);
 
     // 2. Run maintenance
