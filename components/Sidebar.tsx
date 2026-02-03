@@ -1,7 +1,13 @@
 import React from 'react';
 import { LayoutList, CheckSquare, Plus, Search } from 'lucide-react';
 
-isOffline ?: boolean;
+interface Props {
+  activeTab: 'pending' | 'completed';
+  setActiveTab: (tab: 'pending' | 'completed') => void;
+  onNewTask: () => void;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  isOffline?: boolean;
 }
 
 const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTerm, setSearchTerm, isOffline }) => {
