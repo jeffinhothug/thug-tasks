@@ -242,6 +242,14 @@ const App: React.FC = () => {
 
         {/* Mobile Header with Search */}
         <div className="md:hidden p-4 border-b border-zinc-800 sticky top-0 bg-background/90 backdrop-blur-md z-10">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-[10px] font-mono text-zinc-600">v1.3 (LP)</span>
+            {isOffline && (
+              <span className="text-[10px] text-orange-500 font-bold border border-orange-500/30 px-2 py-0.5 rounded bg-orange-500/10">
+                ⚠️ Offline
+              </span>
+            )}
+          </div>
           <div className="relative">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
