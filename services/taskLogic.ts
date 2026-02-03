@@ -11,7 +11,8 @@ import {
   Timestamp,
   writeBatch
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { db, auth } from "./firebase";
+export { auth }; // Re-export for App usage
 import { Task, TaskPriority, NewTaskInput, GroupedCompletedTasks } from "../types";
 import dayjs from "dayjs";
 

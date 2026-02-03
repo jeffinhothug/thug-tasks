@@ -39,6 +39,7 @@ const App: React.FC = () => {
   const [completeModalTask, setCompleteModalTask] = useState<Task | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isOffline, setIsOffline] = useState(false);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -46,6 +47,18 @@ const App: React.FC = () => {
 
   // Initialization
   useEffect(() => {
+    // 0. Auth Monitor
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        setAuthUserId(user.uid);
+      } else {
+        setAuthUserId(null);
+        showToast('⚠️ Usuário não autenticado', 'error');
+        // Tentar relogar se cair?
+        // signInAnonymously(auth); // Já é feito no firebase.ts, mas podemos forçar aqui se necessário
+      }
+    });
+
     // 1. Subscribe to data
     const unsubscribePending = subscribeToPendingTasks(
       (tasks, isOffline) => {
@@ -235,6 +248,7 @@ const App: React.FC = () => {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         isOffline={isOffline}
+        authUserId={authUserId}
       />
 
       {/* Main Content */}

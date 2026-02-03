@@ -8,9 +8,10 @@ interface Props {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   isOffline?: boolean;
+  authUserId?: string | null;
 }
 
-const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTerm, setSearchTerm, isOffline }) => {
+const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTerm, setSearchTerm, isOffline, authUserId }) => {
   return (
     <div className="fixed bottom-0 left-0 w-full h-16 bg-zinc-950/90 border-t border-zinc-800 flex flex-row items-center justify-around z-40 backdrop-blur-xl md:w-64 md:h-screen md:bg-black/50 md:border-t-0 md:border-r md:flex-col md:justify-start md:items-stretch md:static md:z-20">
 
@@ -75,8 +76,11 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
             ⚠️ Offline / Não Sincronizado
           </div>
         )}
-        <div className="mt-2 text-[9px] text-zinc-800 font-mono text-center opacity-50">
-          v1.4 (Cloud Only)
+        <div className="mt-2 text-[9px] text-zinc-800 font-mono text-center flex flex-col gap-1">
+          <span className="opacity-50">v1.4 (Cloud Only)</span>
+          <span className={authUserId ? "text-green-800" : "text-red-500 font-bold"}>
+            {authUserId ? `User: ${authUserId.slice(0, 5)}...` : 'NÃO AUTENTICADO'}
+          </span>
         </div>
       </div>
     </div>
