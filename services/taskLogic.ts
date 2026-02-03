@@ -33,8 +33,13 @@ export const calculatePriority = (dueDate: string): TaskPriority => {
 
 export const addTask = async (input: NewTaskInput): Promise<string> => {
   const priority = calculatePriority(input.dueDate);
+
+  // Firestore does not accept 'undefined', so we must sanitize the input
+  const safeInput = { ...input };
+  if (safeInput.reminderTime === undefined) delete safeInput.reminderTime;
+
   const newTask = {
-    ...input,
+    ...safeInput,
     priority,
     isPinned: input.isPinned || false,
     isCompleted: false,
@@ -60,7 +65,16 @@ export const updateTask = async (id: string, updates: Partial<Task>) => {
   if (updates.dueDate) {
     updates.priority = calculatePriority(updates.dueDate);
   }
-  await updateDoc(taskRef, updates);
+
+  // Remove undefined fields
+  const safeUpdates = { ...updates };
+  Object.keys(safeUpdates).forEach(key => {
+    if (safeUpdates[key as keyof Task] === undefined) {
+      delete safeUpdates[key as keyof Task];
+    }
+  });
+
+  await updateDoc(taskRef, safeUpdates);
 };
 
 export const completeTask = async (id: string, note?: string) => {
