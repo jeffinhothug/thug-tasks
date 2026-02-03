@@ -62,6 +62,7 @@ const App: React.FC = () => {
   // Initialization
   useEffect(() => {
     // 0. Auth Monitor
+    console.log("Thug Tasks App Mounting... v1.5-PC-Fix");
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
       if (user) {
         setAuthUserId(user.uid);
@@ -216,8 +217,13 @@ const App: React.FC = () => {
 
   const handleDeleteTask = async (id: string) => {
     if (confirm('Tem certeza que deseja explodir essa missão?')) {
-      await deleteTask(id);
-      showToast('Missão abortada (deletada)!');
+      try {
+        await deleteTask(id);
+        showToast('Missão abortada (deletada)!');
+      } catch (error) {
+        console.error("Erro ao deletar:", error);
+        showToast('Erro ao deletar tarefa', 'error');
+      }
     }
   };
 
