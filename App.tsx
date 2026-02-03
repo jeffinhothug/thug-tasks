@@ -14,9 +14,9 @@ import {
   updateTask,
   groupTasksByDate,
   recalculateAllPriorities,
-  cleanupOldTasks,
-  auth
+  cleanupOldTasks
 } from './services/taskLogic';
+import { auth } from './services/firebase';
 import { Task, NewTaskInput, TaskPriority } from './types';
 import { Search, Info } from 'lucide-react';
 import dayjs from 'dayjs';
