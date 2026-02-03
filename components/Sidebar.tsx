@@ -76,7 +76,7 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
           </div>
         )}
         <div className="mt-2 text-[9px] text-zinc-800 font-mono text-center opacity-50">
-          v1.3 (Long Polling Fix)
+          v1.4 (Cloud Only)
         </div>
       </div>
     </div>

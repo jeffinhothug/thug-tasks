@@ -1,8 +1,9 @@
 import { initializeApp } from "firebase/app";
 import {
   initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager
+  memoryLocalCache, // Mudei para memória volátil (Online Only)
+  // persistentLocalCache, // Desativado a pedido do usuário
+  // persistentMultipleTabManager
 } from "firebase/firestore";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
@@ -18,13 +19,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Inicialização robusta para redes restritivas (AdGuard, Firewalls Corporativos)
+// Inicialização: ONLINE ONLY (Tanque de Guerra modo Server-Side)
+// Se não salvar no servidor, não salva no celular. Igual WhatsApp.
 const db = initializeFirestore(app, {
-  // Força HTTP em vez de WebSocket (passa por bloqueadores)
+  // Força HTTP para vencer AdGuard e Firewalls
   experimentalForceLongPolling: true,
 
-  // Cache persistente padrão (sem gerenciador de abas complexo para evitar conflitos)
-  localCache: persistentLocalCache()
+  // Cache apenas na memória RAM. Fechou o app, sumiu (se não tiver ido pra nuvem).
+  localCache: memoryLocalCache()
 });
 
 const auth = getAuth(app);
