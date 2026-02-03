@@ -58,32 +58,233 @@ const App: React.FC = () => {
     }
   };
 
-  // ... (existing code)
+  // Initialization
+  useEffect(() => {
+    // 0. Auth Monitor
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setAuthUserId(user.uid);
+      } else {
+        setAuthUserId(null);
+        showToast('⚠️ Usuário não autenticado', 'error');
+      }
+    });
 
-  {/* Mobile Header with Search */ }
+    // 1. Subscribe to data
+    const unsubscribePending = subscribeToPendingTasks(
+      (tasks, isOffline) => {
+        setPendingTasks(tasks);
+        setIsOffline(isOffline);
+      },
+      (error) => showToast(`Erro Crítico de Conexão: ${error.message}`, 'error')
+    );
+    const unsubscribeCompleted = subscribeToCompletedTasks(setCompletedTasks);
+
+    // 2. Run maintenance
+    const initMaintenance = async () => {
+      await recalculateAllPriorities();
+      await cleanupOldTasks();
+
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    };
+    initMaintenance();
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribePending();
+      unsubscribeCompleted();
+    };
+  }, []);
+
+  // Notification Check
+  useEffect(() => {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+    const checkDueTasks = () => {
+      const now = dayjs();
+      const tasks = [...pendingTasks];
+
+      tasks.forEach(task => {
+        if (task.isCompleted) return;
+
+        let shouldNotify = false;
+        let message = '';
+        const notifiedKey = `notified-${task.id}-${dayjs().format('YYYY-MM-DD-HH')}`;
+
+        if (localStorage.getItem(notifiedKey)) return;
+
+        if (task.reminderTime) {
+          const reminder = dayjs(task.reminderTime);
+          const diffInMinutes = reminder.diff(now, 'minute');
+
+          if (diffInMinutes >= 0 && diffInMinutes <= 15) {
+            shouldNotify = true;
+            message = `⏰ Lembrete: "${task.title}" é às ${reminder.format('HH:mm')}!`;
+          }
+        } else {
+          const dueDate = dayjs(task.dueDate);
+          if (dueDate.isSame(now, 'day')) {
+            shouldNotify = true;
+            message = `📅 Para Hoje (O Dia Todo): "${task.title}"`;
+          }
+        }
+
+        if (shouldNotify) {
+          new Notification('Thug Tasks', {
+            body: message,
+            icon: '/icon.svg'
+          });
+          localStorage.setItem(notifiedKey, 'true');
+        }
+      });
+    };
+
+    const timer = setInterval(checkDueTasks, 15 * 60 * 1000);
+    checkDueTasks();
+
+    return () => clearInterval(timer);
+  }, [pendingTasks]);
+
+  // Filter Logic
+  const filterTasks = (tasks: Task[]) => {
+    if (!searchTerm) return tasks;
+    const lower = searchTerm.toLowerCase();
+    return tasks.filter(t =>
+      t.title.toLowerCase().includes(lower) ||
+      t.description?.toLowerCase().includes(lower)
+    );
+  };
+
+  // Handlers
+  const handleNewTask = () => {
+    setEditingTaskId(null);
+    setFormInitialData({});
+    setIsFormOpen(true);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTaskId(task.id);
+    setFormInitialData({
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+      reminderTime: task.reminderTime,
+      isPinned: task.isPinned
+    });
+    setIsFormOpen(true);
+  };
+
+  const handleSubmitTask = async (input: NewTaskInput) => {
+    try {
+      if (editingTaskId) {
+        await updateTask(editingTaskId, input);
+        showToast('Tarefa atualizada!');
+      } else {
+        await addTask(input);
+        showToast('Tarefa salva com sucesso!');
+      }
+      setIsFormOpen(false);
+      setEditingTaskId(null);
+    } catch (error) {
+      console.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      showToast(`Erro ao salvar: ${errorMessage}`, 'error');
+    }
+  };
+
+  const handleQuickAdd = async (title: string, dueDate: string) => {
+    try {
+      await addTask({
+        title,
+        dueDate,
+        isPinned: false
+      });
+      showToast('Missão adicionada!');
+    } catch (error) {
+      console.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      showToast(`Erro ao criar rápida: ${errorMessage}`, 'error');
+    }
+  };
+
+  const handlePin = async (id: string, isPinned: boolean) => {
+    await updateTask(id, { isPinned });
+  };
+
+  const initiateComplete = (task: Task) => {
+    setCompleteModalTask(task);
+  };
+
+  const confirmComplete = async (id: string, note: string, createFollowUp: boolean) => {
+    if (completeModalTask) {
+      await completeTask(id, note);
+      showToast('Tarefa concluída!');
+
+      if (createFollowUp) {
+        setFormInitialData({
+          title: `Seguimento: ${completeModalTask.title}`,
+          description: `Ref: ${completeModalTask.title} concluída em ${dayjs().format('D MMM, YYYY')}. ${note}`,
+          isPinned: true
+        });
+        setTimeout(() => setIsFormOpen(true), 100);
+      }
+    }
+    setCompleteModalTask(null);
+  };
+
+  const groupedCompleted = groupTasksByDate(filterTasks(completedTasks));
+  const displayedPending = filterTasks(pendingTasks);
+
+  return (
+    <div className="flex min-h-screen bg-background text-zinc-100 overflow-hidden">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onNewTask={handleNewTask}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        isOffline={isOffline}
+        authUserId={authUserId}
+        onManualLogin={handleManualLogin}
+      />
+
+      {/* Main Content */}
+      <main className="flex-1 h-screen overflow-y-auto relative pb-20 md:pb-0 md:pl-0">
+
+        {/* Mobile Header with Search */}
         <div className="md:hidden p-4 border-b border-zinc-800 sticky top-0 bg-background/90 backdrop-blur-md z-10 flex flex-col gap-3">
           <div className="flex justify-between items-center">
             <div className="flex flex-col">
-               <span className="text-[10px] font-mono text-zinc-600">v1.4 (Cloud Only)</span>
-               <span className={`text-[10px] font-bold ${authUserId ? "text-green-600" : "text-red-500"}`}>
-                 {authUserId ? "Online" : "Desconectado"}
-               </span>
+              <span className="text-[10px] font-mono text-zinc-600">v1.4 (Cloud Only)</span>
+              <span className={`text-[10px] font-bold ${authUserId ? "text-green-600" : "text-red-500"}`}>
+                {authUserId ? "Online" : "Desconectado"}
+              </span>
             </div>
-            
+
             <div className="flex gap-2 items-center">
-                {isOffline && (
-                  <span className="text-[10px] text-orange-500 font-bold border border-orange-500/30 px-2 py-1 rounded bg-orange-500/10">
-                    ⚠️ Offline
-                  </span>
-                )}
-                {!authUserId && (
-                   <button 
-                     onClick={handleManualLogin}
-                     className="bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg animate-pulse"
-                   >
-                     Conectar
-                   </button>
-                )}
+              {isOffline && (
+                <span className="text-[10px] text-orange-500 font-bold border border-orange-500/30 px-2 py-1 rounded bg-orange-500/10">
+                  ⚠️ Offline
+                </span>
+              )}
+              {!authUserId && (
+                <button
+                  onClick={handleManualLogin}
+                  className="bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg animate-pulse"
+                >
+                  Conectar
+                </button>
+              )}
             </div>
           </div>
 
@@ -171,27 +372,27 @@ const App: React.FC = () => {
             </div>
           )}
         </div>
-      </main >
+      </main>
 
-  {/* Floating Elements */ }
-  < FloatingWidget tasks = { pendingTasks } onNewTask = { handleNewTask } />
+      {/* Floating Elements */}
+      <FloatingWidget tasks={pendingTasks} onNewTask={handleNewTask} />
 
-    {/* Modals */ }
-    < TaskForm
-isOpen = { isFormOpen }
-onClose = {() => setIsFormOpen(false)}
-onSubmit = { handleSubmitTask }
-initialData = { formInitialData }
-  />
+      {/* Modals */}
+      <TaskForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleSubmitTask}
+        initialData={formInitialData}
+      />
 
-  <CompleteModal
-    isOpen={!!completeModalTask}
-    task={completeModalTask}
-    onClose={() => setCompleteModalTask(null)}
-    onConfirm={confirmComplete}
-  />
+      <CompleteModal
+        isOpen={!!completeModalTask}
+        task={completeModalTask}
+        onClose={() => setCompleteModalTask(null)}
+        onConfirm={confirmComplete}
+      />
 
-    </div >
+    </div>
   );
 };
 
