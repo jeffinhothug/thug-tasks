@@ -1,24 +1,22 @@
 import React from 'react';
 import { LayoutList, CheckSquare, Plus, Search } from 'lucide-react';
 
-interface Props {
-  activeTab: 'pending' | 'completed';
-  setActiveTab: (tab: 'pending' | 'completed') => void;
-  onNewTask: () => void;
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
+isOffline ?: boolean;
 }
 
-const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTerm, setSearchTerm }) => {
+const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTerm, setSearchTerm, isOffline }) => {
   return (
     <div className="fixed bottom-0 left-0 w-full h-16 bg-zinc-950/90 border-t border-zinc-800 flex flex-row items-center justify-around z-40 backdrop-blur-xl md:w-64 md:h-screen md:bg-black/50 md:border-t-0 md:border-r md:flex-col md:justify-start md:items-stretch md:static md:z-20">
 
       {/* Brand - Hidden on Mobile, Visible Desktop */}
-      <div className="hidden md:flex h-16 items-center justify-start px-6 border-b border-zinc-800">
+      <div className="hidden md:flex h-16 items-center justify-start px-6 border-b border-zinc-800 relative">
         <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg shadow-sky-900/50">
           <span className="font-bold text-white text-lg">T</span>
         </div>
         <span className="ml-3 font-bold text-zinc-100 tracking-tight">THUG TASKS</span>
+        {isOffline && (
+          <span className="absolute top-4 right-4 w-2 h-2 rounded-full bg-orange-500 animate-pulse" title="Modo Offline (Sem Sincronização)" />
+        )}
       </div>
 
       {/* New Task Button - Central FAB on Mobile, Top Button on Desktop */}
@@ -66,9 +64,11 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
             className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-9 pr-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-zinc-600 transition-colors"
           />
         </div>
-        <div className="text-[10px] text-zinc-700 font-mono text-center">
-          ID: {import.meta.env.VITE_FIREBASE_PROJECT_ID || 'N/A'}
-        </div>
+        {isOffline && (
+          <div className="text-xs text-orange-500 font-medium text-center bg-orange-500/10 py-1 px-2 rounded border border-orange-500/20">
+            ⚠️ Offline / Não Sincronizado
+          </div>
+        )}
       </div>
     </div>
   );

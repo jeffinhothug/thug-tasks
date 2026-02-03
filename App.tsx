@@ -38,6 +38,7 @@ const App: React.FC = () => {
   const [formInitialData, setFormInitialData] = useState<Partial<NewTaskInput>>({});
   const [completeModalTask, setCompleteModalTask] = useState<Task | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [isOffline, setIsOffline] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -47,7 +48,10 @@ const App: React.FC = () => {
   useEffect(() => {
     // 1. Subscribe to data
     const unsubscribePending = subscribeToPendingTasks(
-      setPendingTasks,
+      (tasks, isOffline) => {
+        setPendingTasks(tasks);
+        setIsOffline(isOffline);
+      },
       (error) => showToast(`Erro de conexão: ${error.message}`, 'error')
     );
     const unsubscribeCompleted = subscribeToCompletedTasks(setCompletedTasks);
@@ -228,6 +232,7 @@ const App: React.FC = () => {
         onNewTask={handleNewTask}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
+        isOffline={isOffline}
       />
 
       {/* Main Content */}

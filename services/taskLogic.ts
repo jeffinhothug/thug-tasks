@@ -96,7 +96,7 @@ export const deleteTask = async (id: string) => {
 
 // --- Subscriptions ---
 
-export const subscribeToPendingTasks = (callback: (tasks: Task[]) => void, onError?: (error: Error) => void) => {
+export const subscribeToPendingTasks = (callback: (tasks: Task[], isOffline: boolean) => void, onError?: (error: Error) => void) => {
   const q = query(
     collection(db, COLLECTION_NAME),
     where("isCompleted", "==", false)
@@ -104,6 +104,7 @@ export const subscribeToPendingTasks = (callback: (tasks: Task[]) => void, onErr
 
   return onSnapshot(q, (snapshot) => {
     const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
+    const isOffline = snapshot.metadata.fromCache;
 
     // Client-side sorting: Pinned first, then by Due Date asc
     tasks.sort((a, b) => {
@@ -112,7 +113,7 @@ export const subscribeToPendingTasks = (callback: (tasks: Task[]) => void, onErr
       return dayjs(a.dueDate).unix() - dayjs(b.dueDate).unix();
     });
 
-    callback(tasks);
+    callback(tasks, isOffline);
   }, (error) => {
     console.error("Erro no subscribePending:", error);
     if (onError) onError(error);

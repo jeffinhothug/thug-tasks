@@ -18,16 +18,13 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Inicialização do Firestore SEM cache persistente para teste de sincronização
-// const db = initializeFirestore(app, {
-//   localCache: persistentLocalCache({
-//     tabManager: persistentMultipleTabManager()
-//   })
-// });
-
-// Fallback simples (Online Only)
-import { getFirestore } from "firebase/firestore";
-const db = getFirestore(app);
+// Inicialização do Firestore com configuração moderna de cache persistente (Offline)
+// Isso permite que o app funcione mesmo sem internet ou sem configuração válida imediata
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager()
+  })
+});
 
 const auth = getAuth(app);
 
