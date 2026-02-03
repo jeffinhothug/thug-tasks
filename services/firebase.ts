@@ -18,12 +18,13 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Inicialização do Firestore com configuração moderna de cache persistente (Offline)
-// Isso permite que o app funcione mesmo sem internet ou sem configuração válida imediata
+// Inicialização robusta para redes restritivas (AdGuard, Firewalls Corporativos)
 const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  })
+  // Força HTTP em vez de WebSocket (passa por bloqueadores)
+  experimentalForceLongPolling: true,
+
+  // Cache persistente padrão (sem gerenciador de abas complexo para evitar conflitos)
+  localCache: persistentLocalCache()
 });
 
 const auth = getAuth(app);
