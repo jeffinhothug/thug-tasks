@@ -56,7 +56,7 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
 
       {/* Search - Only visible on desktop here */}
       <div className="hidden md:block p-4 border-t border-zinc-800 mt-auto">
-        <div className="relative">
+        <div className="relative mb-3">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input
             type="text"
@@ -65,6 +65,9 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-9 pr-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-zinc-600 transition-colors"
           />
+        </div>
+        <div className="text-[10px] text-zinc-700 font-mono text-center">
+          ID: {import.meta.env.VITE_FIREBASE_PROJECT_ID || 'N/A'}
         </div>
       </div>
     </div>
