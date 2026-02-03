@@ -11,6 +11,7 @@ interface Props {
   onComplete: (task: Task) => void;
   onPin: (id: string, isPinned: boolean) => void;
   onEdit: (task: Task) => void;
+  onDelete: (id: string) => void;
 }
 
 const TaskCard: React.FC<Props> = ({ task, onComplete, onPin, onEdit }) => {

@@ -14,7 +14,8 @@ import {
   updateTask,
   groupTasksByDate,
   recalculateAllPriorities,
-  cleanupOldTasks
+  cleanupOldTasks,
+  deleteTask
 } from './services/taskLogic';
 import { auth } from './services/firebase';
 import { Task, NewTaskInput, TaskPriority } from './types';
@@ -213,6 +214,13 @@ const App: React.FC = () => {
     await updateTask(id, { isPinned });
   };
 
+  const handleDeleteTask = async (id: string) => {
+    if (confirm('Tem certeza que deseja explodir essa missão?')) {
+      await deleteTask(id);
+      showToast('Missão abortada (deletada)!');
+    }
+  };
+
   const initiateComplete = (task: Task) => {
     setCompleteModalTask(task);
   };
@@ -327,6 +335,7 @@ const App: React.FC = () => {
                       onComplete={initiateComplete}
                       onPin={handlePin}
                       onEdit={handleEditTask}
+                      onDelete={handleDeleteTask}
                     />
                   ))
                 ) : (
