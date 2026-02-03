@@ -51,8 +51,10 @@ const App: React.FC = () => {
       (tasks, isOffline) => {
         setPendingTasks(tasks);
         setIsOffline(isOffline);
+        // Debug Toast: Helps user verify what is happening
+        // showToast(`Sync: ${tasks.length} tarefas (${isOffline ? 'Memória' : 'Nuvem'})`, isOffline ? 'error' : 'success');
       },
-      (error) => showToast(`Erro de conexão: ${error.message}`, 'error')
+      (error) => showToast(`Erro Crítico de Conexão: ${error.message}`, 'error')
     );
     const unsubscribeCompleted = subscribeToCompletedTasks(setCompletedTasks);
 
