@@ -392,6 +392,7 @@ const App: React.FC = () => {
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleSubmitTask}
         initialData={formInitialData}
+        onDelete={() => editingTaskId && handleDeleteTask(editingTaskId)}
       />
 
       <CompleteModal

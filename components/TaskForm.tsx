@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NewTaskInput } from '../types';
-import { X, Calendar, Pin, Clock } from 'lucide-react';
+import { X, Calendar, Pin, Clock, Trash2 } from 'lucide-react';
 import dayjs from 'dayjs';
 
 interface Props {
@@ -8,9 +8,10 @@ interface Props {
   onClose: () => void;
   onSubmit: (task: NewTaskInput) => Promise<void>;
   initialData?: Partial<NewTaskInput>;
+  onDelete?: () => void;
 }
 
-const TaskForm: React.FC<Props> = ({ isOpen, onClose, onSubmit, initialData }) => {
+const TaskForm: React.FC<Props> = ({ isOpen, onClose, onSubmit, initialData, onDelete }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -154,8 +155,8 @@ const TaskForm: React.FC<Props> = ({ isOpen, onClose, onSubmit, initialData }) =
                   type="button"
                   onClick={() => setIsPinned(!isPinned)}
                   className={`w-full flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${isPinned
-                      ? 'bg-zinc-800 border-sky-500 text-sky-400'
-                      : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                    ? 'bg-zinc-800 border-sky-500 text-sky-400'
+                    : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700'
                     }`}
                 >
                   <Pin size={16} className={isPinned ? 'fill-sky-400' : ''} />
@@ -166,6 +167,19 @@ const TaskForm: React.FC<Props> = ({ isOpen, onClose, onSubmit, initialData }) =
           </div>
 
           <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 flex justify-end gap-3">
+            <button
+              type="button"
+            <div className="flex gap-3">
+              {initialData?.title && onDelete && (
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  className="px-4 py-2 text-sm text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors mr-auto"
+                >
+                  <Trash2 size={18} />
+                </button>
+              )}
+            </div>
             <button
               type="button"
               onClick={onClose}
