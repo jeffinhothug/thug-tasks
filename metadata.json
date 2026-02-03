@@ -1,0 +1,5 @@
+{
+  "name": "Thug Tasks",
+  "description": "Gerenciador de tarefas minimalista e offline-first com prioridade automática.",
+  "requestFramePermissions": []
+}
