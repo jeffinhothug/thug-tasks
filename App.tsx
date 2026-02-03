@@ -161,7 +161,8 @@ const App: React.FC = () => {
       }
     } catch (error) {
       console.error(error);
-      showToast('Erro ao salvar tarefa.', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      showToast(`Erro ao salvar: ${errorMessage}`, 'error');
     }
   };
 
