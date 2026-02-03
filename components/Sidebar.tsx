@@ -9,9 +9,10 @@ interface Props {
   setSearchTerm: (term: string) => void;
   isOffline?: boolean;
   authUserId?: string | null;
+  onManualLogin: () => void;
 }
 
-const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTerm, setSearchTerm, isOffline, authUserId }) => {
+const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTerm, setSearchTerm, isOffline, authUserId, onManualLogin }) => {
   return (
     <div className="fixed bottom-0 left-0 w-full h-16 bg-zinc-950/90 border-t border-zinc-800 flex flex-row items-center justify-around z-40 backdrop-blur-xl md:w-64 md:h-screen md:bg-black/50 md:border-t-0 md:border-r md:flex-col md:justify-start md:items-stretch md:static md:z-20">
 
@@ -27,7 +28,7 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
       </div>
 
       {/* New Task Button - Central FAB on Mobile, Top Button on Desktop */}
-      <div className="order-2 md:order-none md:p-4 -mt-8 md:mt-0">
+      <div className="order-2 md:order-none md:p-4 -mt-8 md:mt-0 flex flex-col gap-2">
         <button
           onClick={onNewTask}
           aria-label="Nova Tarefa"
@@ -36,6 +37,15 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
           <Plus size={24} className="md:w-5 md:h-5" />
           <span className="hidden md:block font-semibold">Nova Tarefa</span>
         </button>
+
+        {!authUserId && (
+          <button
+            onClick={onManualLogin}
+            className="hidden md:flex w-full bg-green-600 hover:bg-green-500 text-white p-2 rounded-lg text-xs font-bold items-center justify-center gap-2 animate-bounce"
+          >
+            🔌 Conectar
+          </button>
+        )}
       </div>
 
       {/* Nav */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { signInAnonymously } from "firebase/auth";
 import Sidebar from './components/Sidebar';
 import TaskCard from './components/TaskCard';
 import TaskForm from './components/TaskForm';
@@ -13,7 +14,8 @@ import {
   updateTask,
   groupTasksByDate,
   recalculateAllPriorities,
-  cleanupOldTasks
+  cleanupOldTasks,
+  auth
 } from './services/taskLogic';
 import { Task, NewTaskInput, TaskPriority } from './types';
 import { Search, Info } from 'lucide-react';
@@ -43,6 +45,16 @@ const App: React.FC = () => {
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
+  };
+
+  const handleManualLogin = async () => {
+    try {
+      await signInAnonymously(auth);
+      showToast('Tentativa de conexão enviada...', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast('Falha ao tentar conectar.', 'error');
+    }
   };
 
   // Initialization
@@ -249,6 +261,7 @@ const App: React.FC = () => {
         setSearchTerm={setSearchTerm}
         isOffline={isOffline}
         authUserId={authUserId}
+        onManualLogin={handleManualLogin}
       />
 
       {/* Main Content */}
