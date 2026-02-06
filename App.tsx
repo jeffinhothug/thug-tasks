@@ -4,7 +4,6 @@ import Sidebar from './components/Sidebar';
 import TaskCard from './components/TaskCard';
 import TaskForm from './components/TaskForm';
 import CompleteModal from './components/CompleteModal';
-import FloatingWidget from './components/FloatingWidget';
 import QuickAddInput from './components/QuickAddInput';
 import StartupGuide from './components/StartupGuide';
 import MobileMenu from './components/MobileMenu';
@@ -492,7 +491,8 @@ const App: React.FC = () => {
       </main>
 
       {/* Floating Elements */}
-      <FloatingWidget tasks={pendingTasks} onNewTask={handleNewTask} />
+      {/* Floating Elements (Removido por solicitação) */}
+      {/* <FloatingWidget tasks={pendingTasks} onNewTask={handleNewTask} /> */}
 
       {/* Modals */}
       <TaskForm
