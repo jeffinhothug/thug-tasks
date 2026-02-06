@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutList, CheckSquare, Plus, Search, MonitorPlay, Bell } from 'lucide-react';
+import { LayoutList, CheckSquare, Plus, Search, MonitorPlay, Bell, RefreshCw } from 'lucide-react';
 
 interface Props {
   activeTab: 'pending' | 'completed';
@@ -12,11 +12,12 @@ interface Props {
   onManualLogin: () => void;
   onOpenStartupGuide: () => void;
   onTestNotification: () => void;
+  onCheckUpdates: () => void;
 }
 
 // ... interface ...
 
-const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTerm, setSearchTerm, isOffline, authUserId, onManualLogin, onOpenStartupGuide, onTestNotification }) => {
+const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTerm, setSearchTerm, isOffline, authUserId, onManualLogin, onOpenStartupGuide, onTestNotification, onCheckUpdates }) => {
   return (
     <div className="fixed bottom-0 left-0 w-full h-16 bg-zinc-950/90 border-t border-zinc-800 flex flex-row items-center justify-around z-40 backdrop-blur-xl md:w-64 md:h-screen md:bg-black/50 md:border-t-0 md:border-r md:flex-col md:justify-start md:items-stretch md:static md:z-20">
 
@@ -87,6 +88,15 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
         >
           <Bell size={18} />
           <span className="text-sm font-medium">Testar Alerta</span>
+        </button>
+
+        <button
+          onClick={onCheckUpdates}
+          className="hidden md:flex flex-row items-center justify-start gap-3 p-3 w-full text-zinc-600 hover:text-emerald-400 hover:bg-zinc-900/50 rounded-lg transition-colors"
+          title="Buscar Atualizações (Recarregar)"
+        >
+          <RefreshCw size={18} />
+          <span className="text-sm font-medium">Atualizar App</span>
         </button>
       </nav>
 

@@ -370,6 +370,7 @@ const App: React.FC = () => {
         onManualLogin={handleManualLogin}
         onOpenStartupGuide={() => setIsStartupGuideOpen(true)}
         onTestNotification={handleTestNotification}
+        onCheckUpdates={handleCheckForUpdates}
       />
 
       {/* Main Content */}
