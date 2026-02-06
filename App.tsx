@@ -389,7 +389,7 @@ const App: React.FC = () => {
                 <Menu size={24} />
               </button>
               <div className="flex flex-col">
-                <span className="text-[10px] font-mono text-zinc-600">v1.5.1</span>
+                <span className="text-[10px] font-mono text-zinc-600">v1.5.2</span>
                 <span className={`text-[10px] font-bold ${authUserId ? "text-green-600" : "text-red-500"}`}>
                   {authUserId ? "Online" : "Offline"}
                 </span>

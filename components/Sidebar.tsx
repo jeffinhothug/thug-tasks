@@ -118,7 +118,7 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
           </div>
         )}
         <div className="mt-2 text-[9px] text-zinc-800 font-mono text-center flex flex-col gap-1">
-          <span className="opacity-50">v1.4 (Cloud Only)</span>
+          <span className="opacity-50">v1.5.2</span>
           <span className={authUserId ? "text-green-800" : "text-red-500 font-bold"}>
             {authUserId ? `User: ${authUserId.slice(0, 5)}...` : 'NÃO AUTENTICADO'}
           </span>

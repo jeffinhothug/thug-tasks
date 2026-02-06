@@ -131,7 +131,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
                 {/* Footer */}
                 <div className="p-4 border-t border-zinc-800 text-center">
-                    <span className="text-[10px] text-zinc-600 font-mono">v1.5.1 Mobile Patch</span>
+                    <span className="text-[10px] text-zinc-600 font-mono">v1.5.2</span>
                 </div>
             </div>
         </>
