@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutList, CheckSquare, Plus, Search } from 'lucide-react';
+import { LayoutList, CheckSquare, Plus, Search, MonitorPlay, Bell } from 'lucide-react';
 
 interface Props {
   activeTab: 'pending' | 'completed';
@@ -10,9 +10,13 @@ interface Props {
   isOffline?: boolean;
   authUserId?: string | null;
   onManualLogin: () => void;
+  onOpenStartupGuide: () => void;
+  onTestNotification: () => void;
 }
 
-const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTerm, setSearchTerm, isOffline, authUserId, onManualLogin }) => {
+// ... interface ...
+
+const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTerm, setSearchTerm, isOffline, authUserId, onManualLogin, onOpenStartupGuide, onTestNotification }) => {
   return (
     <div className="fixed bottom-0 left-0 w-full h-16 bg-zinc-950/90 border-t border-zinc-800 flex flex-row items-center justify-around z-40 backdrop-blur-xl md:w-64 md:h-screen md:bg-black/50 md:border-t-0 md:border-r md:flex-col md:justify-start md:items-stretch md:static md:z-20">
 
@@ -66,6 +70,23 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
         >
           <CheckSquare size={22} className="md:w-5 md:h-5" />
           <span className="text-[10px] md:text-base font-medium md:font-medium">Concluídas</span>
+        </button>
+
+        <button
+          onClick={onOpenStartupGuide}
+          className="hidden md:flex flex-row items-center justify-start gap-3 p-3 w-full text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 rounded-lg transition-colors mt-auto"
+        >
+          <MonitorPlay size={20} />
+          <span className="text-base font-medium">Iniciar c/ PC</span>
+        </button>
+
+        <button
+          onClick={onTestNotification}
+          className="hidden md:flex flex-row items-center justify-start gap-3 p-3 w-full text-zinc-600 hover:text-zinc-200 hover:bg-zinc-900/50 rounded-lg transition-colors"
+          title="Testar Notificações"
+        >
+          <Bell size={18} />
+          <span className="text-sm font-medium">Testar Alerta</span>
         </button>
       </nav>
 

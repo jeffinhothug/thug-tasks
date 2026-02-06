@@ -6,6 +6,7 @@ import TaskForm from './components/TaskForm';
 import CompleteModal from './components/CompleteModal';
 import FloatingWidget from './components/FloatingWidget';
 import QuickAddInput from './components/QuickAddInput';
+import StartupGuide from './components/StartupGuide';
 import {
   subscribeToPendingTasks,
   subscribeToCompletedTasks,
@@ -43,6 +44,7 @@ const App: React.FC = () => {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isOffline, setIsOffline] = useState(false);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -100,20 +102,73 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // Notification Check
+
+  // Notification Helper
+  const sendNotification = async (title: string, options?: NotificationOptions) => {
+    try {
+      if (!('Notification' in window)) {
+        console.warn("Navegador sem suporte a notificações.");
+        return;
+      }
+
+      if (Notification.permission !== 'granted') {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+      }
+
+      const enhancedOptions = {
+        icon: '/icon.svg',
+        badge: '/icon.svg', // Pequeno ícone na barra (Android)
+        vibrate: [200, 100, 200], // Vibrar: Tumm-tumm
+        requireInteraction: true, // No PC, a notificação fica até clicar (Windows Toast persistente)
+        ...options
+      } as NotificationOptions;
+
+      // Tenta usar ServiceWorker para notificações ricas (Mobile/Barra de Status)
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration) {
+        await registration.showNotification(title, enhancedOptions);
+      } else {
+        // Fallback para API clássica (PC sem SW)
+        new Notification(title, enhancedOptions);
+      }
+    } catch (err) {
+      console.error("Erro ao notificar:", err);
+      // Fallback final
+      new Notification(title, options);
+    }
+  };
+
+  const handleTestNotification = () => {
+    sendNotification("Thug Tasks: Teste", {
+      body: "Se você viu isso, suas notificações estão funcionando! 🔥",
+      tag: "test-notification"
+    });
+    showToast("Notificação de teste enviada!");
+  };
+
+  // Notification Check Hook
   useEffect(() => {
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!('Notification' in window)) return;
 
-    const checkDueTasks = () => {
+    // Solicita permissão logo de cara se for default (UX agressiva mas necessária para o relato do usuário)
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    const checkNotifications = () => {
+      // ... resto do código igual ...
       const now = dayjs();
-      const tasks = [...pendingTasks];
+      const hour = now.hour();
+      const minute = now.minute();
 
-      tasks.forEach(task => {
+      // 1. Lembretes de Tarefas Agendadas
+      pendingTasks.forEach(task => {
         if (task.isCompleted) return;
 
         let shouldNotify = false;
         let message = '';
-        const notifiedKey = `notified-${task.id}-${dayjs().format('YYYY-MM-DD-HH')}`;
+        const notifiedKey = `notified-${task.id}-${now.format('YYYY-MM-DD-HH')}`;
 
         if (localStorage.getItem(notifiedKey)) return;
 
@@ -121,30 +176,59 @@ const App: React.FC = () => {
           const reminder = dayjs(task.reminderTime);
           const diffInMinutes = reminder.diff(now, 'minute');
 
+          // Notifica se faltar entre 0 e 15 min
           if (diffInMinutes >= 0 && diffInMinutes <= 15) {
             shouldNotify = true;
-            message = `⏰ Lembrete: "${task.title}" é às ${reminder.format('HH:mm')}!`;
+            message = `⏰ Daqui a pouco: "${task.title}"`;
           }
-        } else {
+        } else if (task.dueDate) {
           const dueDate = dayjs(task.dueDate);
-          if (dueDate.isSame(now, 'day')) {
+          // Notifica às 08:00 se for pro dia
+          if (dueDate.isSame(now, 'day') && hour === 8 && minute < 15) {
             shouldNotify = true;
-            message = `📅 Para Hoje (O Dia Todo): "${task.title}"`;
+            message = `📅 Missão de Hoje: "${task.title}"`;
           }
         }
 
         if (shouldNotify) {
-          new Notification('Thug Tasks', {
+          sendNotification('Thug Tasks Alert', {
             body: message,
-            icon: '/icon.svg'
+            icon: '/icon.svg',
+            tag: `task-${task.id}`
           });
           localStorage.setItem(notifiedKey, 'true');
         }
       });
+
+      // 2. Lembrete de Engajamento Noturno (20h)
+      // Verifica se é entre 20:00 e 20:59
+      if (hour === 20) {
+        const engagementKey = `engagement-${now.format('YYYY-MM-DD')}`;
+        if (!localStorage.getItem(engagementKey)) {
+          let title = '';
+          let body = '';
+
+          if (pendingTasks.length > 0) {
+            title = '⚠️ Revisão Noturna';
+            body = `Você tem ${pendingTasks.length} missões pendentes. Vai encerrar o dia assim?`;
+          } else {
+            // Se não tem pendentes, talvez sugerir criar para amanhã
+            title = '🌙 Noite Livre?';
+            body = 'Tudo limpo! Que tal planejar o domínio de amanhã?';
+          }
+
+          sendNotification(title, {
+            body,
+            icon: '/icon.svg',
+            tag: 'engagement-daily'
+          });
+          localStorage.setItem(engagementKey, 'true');
+        }
+      }
     };
 
-    const timer = setInterval(checkDueTasks, 15 * 60 * 1000);
-    checkDueTasks();
+    const timer = setInterval(checkNotifications, 5 * 60 * 1000); // Check a cada 5 min em vez de 15
+    checkNotifications();
 
     return () => clearInterval(timer);
   }, [pendingTasks]);
@@ -270,6 +354,8 @@ const App: React.FC = () => {
         isOffline={isOffline}
         authUserId={authUserId}
         onManualLogin={handleManualLogin}
+        onOpenStartupGuide={() => setIsStartupGuideOpen(true)}
+        onTestNotification={handleTestNotification}
       />
 
       {/* Main Content */}
@@ -406,6 +492,11 @@ const App: React.FC = () => {
         task={completeModalTask}
         onClose={() => setCompleteModalTask(null)}
         onConfirm={confirmComplete}
+      />
+
+      <StartupGuide
+        isOpen={isStartupGuideOpen}
+        onClose={() => setIsStartupGuideOpen(false)}
       />
 
     </div>
