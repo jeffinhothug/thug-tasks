@@ -7,6 +7,7 @@ import CompleteModal from './components/CompleteModal';
 import FloatingWidget from './components/FloatingWidget';
 import QuickAddInput from './components/QuickAddInput';
 import StartupGuide from './components/StartupGuide';
+import MobileMenu from './components/MobileMenu';
 import {
   subscribeToPendingTasks,
   subscribeToCompletedTasks,
@@ -20,7 +21,7 @@ import {
 } from './services/taskLogic';
 import { auth } from './services/firebase';
 import { Task, NewTaskInput, TaskPriority } from './types';
-import { Search, Info } from 'lucide-react';
+import { Search, Info, Menu } from 'lucide-react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 import Toast from './components/Toast';
@@ -45,6 +46,7 @@ const App: React.FC = () => {
   const [isOffline, setIsOffline] = useState(false);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -364,26 +366,27 @@ const App: React.FC = () => {
         {/* Mobile Header with Search */}
         <div className="md:hidden p-4 border-b border-zinc-800 sticky top-0 bg-background/90 backdrop-blur-md z-10 flex flex-col gap-3">
           <div className="flex justify-between items-center">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-mono text-zinc-600">v1.5 (Cloud Only)</span>
-              <span className={`text-[10px] font-bold ${authUserId ? "text-green-600" : "text-red-500"}`}>
-                {authUserId ? "Online" : "Desconectado"}
-              </span>
+
+            {/* Esquerda: Menu e Versão */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="text-zinc-400 hover:text-white p-1 -ml-1"
+              >
+                <Menu size={24} />
+              </button>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-mono text-zinc-600">v1.5.1</span>
+                <span className={`text-[10px] font-bold ${authUserId ? "text-green-600" : "text-red-500"}`}>
+                  {authUserId ? "Online" : "Offline"}
+                </span>
+              </div>
             </div>
 
+            {/* Direita: Status Offline (simplificado) */}
             <div className="flex gap-2 items-center">
               {isOffline && (
-                <span className="text-[10px] text-orange-500 font-bold border border-orange-500/30 px-2 py-1 rounded bg-orange-500/10">
-                  ⚠️ Offline
-                </span>
-              )}
-              {!authUserId && (
-                <button
-                  onClick={handleManualLogin}
-                  className="bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg animate-pulse"
-                >
-                  Conectar
-                </button>
+                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" title="Offline" />
               )}
             </div>
           </div>
