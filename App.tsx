@@ -160,13 +160,24 @@ const App: React.FC = () => {
     window.location.reload();
   };
 
-  // Notification Check Hook
-  useEffect(() => {
-    if (!('Notification' in window)) return;
 
-    // Solicita permissão logo de cara se for default (UX agressiva mas necessária para o relato do usuário)
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
+
+  // Domain & Notification Check Hook
+  useEffect(() => {
+    // 1. Verificar se está no domínio correto (Evita versões antigas/links errados)
+    const currentHost = window.location.hostname;
+    const officialHost = 'thug-tasks-jeffinho.web.app';
+    const isLocal = currentHost === 'localhost' || currentHost === '127.0.0.1';
+
+    if (!isLocal && currentHost !== officialHost) {
+      showToast(`⚠️ Você pode estar em um link antigo! O oficial é: ${officialHost}`, "error");
+    }
+
+    // 2. Permissão de Notificação
+    if ('Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
     }
 
     const checkNotifications = () => {
