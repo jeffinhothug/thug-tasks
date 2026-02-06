@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, MonitorPlay, Bell, LogIn, LogOut, Wifi, WifiOff } from 'lucide-react';
+import { X, MonitorPlay, Bell, LogIn, LogOut, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 
 interface MobileMenuProps {
     isOpen: boolean;
@@ -9,6 +9,7 @@ interface MobileMenuProps {
     onManualLogin: () => void;
     onOpenStartupGuide: () => void;
     onTestNotification: () => void;
+    onCheckUpdates: () => void;
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({
@@ -18,7 +19,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
     isOffline,
     onManualLogin,
     onOpenStartupGuide,
-    onTestNotification
+    onTestNotification,
+    onCheckUpdates
 }) => {
     return (
         <>
@@ -109,6 +111,19 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                             <div className="flex flex-col items-start">
                                 <span className="text-sm font-medium">Iniciar c/ Windows</span>
                                 <span className="text-[10px] text-zinc-500">Configurar auto-start</span>
+                            </div>
+                        </button>
+
+                        <button
+                            onClick={() => { onCheckUpdates(); onClose(); }}
+                            className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 text-zinc-200 hover:bg-zinc-800 border border-zinc-800/50"
+                        >
+                            <div className="p-2 bg-emerald-500/10 rounded-md text-emerald-400">
+                                <RefreshCw size={18} />
+                            </div>
+                            <div className="flex flex-col items-start">
+                                <span className="text-sm font-medium">Buscar Atualizações</span>
+                                <span className="text-[10px] text-zinc-500">Forçar recarregamento</span>
                             </div>
                         </button>
                     </div>

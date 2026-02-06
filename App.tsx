@@ -149,6 +149,18 @@ const App: React.FC = () => {
     showToast("Notificação de teste enviada!");
   };
 
+  const handleCheckForUpdates = async () => {
+    showToast("Verificando atualizações...", "success");
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        await registration.update();
+      }
+    }
+    // Força reload ignorando cache (true deprecated em alguns browsers modernos, mas mal não faz)
+    window.location.reload();
+  };
+
   // Notification Check Hook
   useEffect(() => {
     if (!('Notification' in window)) return;
@@ -216,7 +228,7 @@ const App: React.FC = () => {
           } else {
             // Se não tem pendentes, talvez sugerir criar para amanhã
             title = '🌙 Noite Livre?';
-            body = 'Tudo limpo! Que tal planejar o domínio de amanhã?';
+            body = 'Noite livre? Aproveite para revisar ou criar uma nova missão para amanhã.';
           }
 
           sendNotification(title, {
@@ -510,6 +522,7 @@ const App: React.FC = () => {
         onManualLogin={handleManualLogin}
         onOpenStartupGuide={() => setIsStartupGuideOpen(true)}
         onTestNotification={handleTestNotification}
+        onCheckUpdates={handleCheckForUpdates}
       />
 
     </div>
