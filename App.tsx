@@ -502,6 +502,16 @@ const App: React.FC = () => {
         onClose={() => setIsStartupGuideOpen(false)}
       />
 
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        authUserId={authUserId}
+        isOffline={isOffline}
+        onManualLogin={handleManualLogin}
+        onOpenStartupGuide={() => setIsStartupGuideOpen(true)}
+        onTestNotification={handleTestNotification}
+      />
+
     </div>
   );
 };
