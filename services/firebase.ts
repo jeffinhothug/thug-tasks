@@ -5,7 +5,8 @@ import {
   // persistentLocalCache, // Desativado a pedido do usuário
   // persistentMultipleTabManager
 } from "firebase/firestore";
-import { getAuth, signInAnonymously } from "firebase/auth";
+import { getAuth } from "firebase/auth";
+import { getMessaging } from "firebase/messaging";
 
 // TODO: SUBSTITUA COM AS CONFIGURAÇÕES DO SEU PROJETO FIREBASE REAL
 const firebaseConfig = {
@@ -30,13 +31,7 @@ const db = initializeFirestore(app, {
 });
 
 const auth = getAuth(app);
+const messaging = getMessaging(app);
 
-// Lógica de segurança:
-// Tenta realizar a autenticação anônima automaticamente
-signInAnonymously(auth).then(() => {
-  console.log("🔥 Firebase: Autenticado anonimamente.");
-}).catch((error) => {
-  console.error("Erro na autenticação Firebase:", error);
-});
-
-export { db, auth };
+// O App.tsx lida com o monitoramento de Auth e login se necessário
+export { db, auth, messaging };

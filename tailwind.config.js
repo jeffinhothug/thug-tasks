@@ -13,7 +13,10 @@ export default {
         surfaceHover: '#27272a', // zinc-800
         primary: '#3b82f6',    // blue-500
         secondary: '#a1a1aa',  // zinc-400
-      }
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
     },
   },
   plugins: [],

@@ -4,6 +4,20 @@
 
 @layer base {
   body {
-    @apply bg-background text-zinc-100;
+    @apply bg-background text-zinc-100 font-sans selection:bg-sky-500/30;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Scrollbar customizada para visual premium */
+  ::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors;
   }
 }

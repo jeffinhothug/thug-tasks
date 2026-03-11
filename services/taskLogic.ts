@@ -18,7 +18,14 @@ import dayjs from "dayjs";
 
 const COLLECTION_NAME = "tasks";
 
-// --- Priority Calculation ---
+// --- Auxiliares de Resiliência (Modo Tanque de Guerra) ---
+
+const withTimeout = <T>(promise: Promise<T>, message: string, timeoutMs: number = 30000): Promise<T> => {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(message)), timeoutMs)
+  );
+  return Promise.race([promise, timeout]);
+};
 
 export const calculatePriority = (dueDate: string): TaskPriority => {
   const now = dayjs();
@@ -35,7 +42,7 @@ export const calculatePriority = (dueDate: string): TaskPriority => {
 export const addTask = async (input: NewTaskInput): Promise<string> => {
   const priority = calculatePriority(input.dueDate);
 
-  // Firestore does not accept 'undefined', so we must sanitize the input
+  // Firestore não aceita 'undefined', então removemos campos vazios
   const safeInput = { ...input };
   Object.keys(safeInput).forEach(key => {
     if (safeInput[key as keyof NewTaskInput] === undefined) {
@@ -51,27 +58,22 @@ export const addTask = async (input: NewTaskInput): Promise<string> => {
     createdAt: new Date().toISOString()
   };
 
-  // Timeout protection (Increased to 30s to avoid false positives on slow networks)
-  const timeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("O servidor demorou para responder, mas sua missão deve ter sido salva localmente.")), 30000)
-  );
-
-  const docRef = await Promise.race([
+  const docRef = await withTimeout(
     addDoc(collection(db, COLLECTION_NAME), newTask),
-    timeout
-  ]);
+    "O servidor demorou para responder, mas sua missão deve ter sido salva localmente."
+  );
 
   return docRef.id;
 };
 
 export const updateTask = async (id: string, updates: Partial<Task>) => {
   const taskRef = doc(db, COLLECTION_NAME, id);
-  // Recalculate priority if date changes
+  // Recalcula prioridade se a data mudar
   if (updates.dueDate) {
     updates.priority = calculatePriority(updates.dueDate);
   }
 
-  // Remove undefined fields
+  // Remove campos undefined
   const safeUpdates = { ...updates };
   Object.keys(safeUpdates).forEach(key => {
     if (safeUpdates[key as keyof Task] === undefined) {
@@ -79,20 +81,29 @@ export const updateTask = async (id: string, updates: Partial<Task>) => {
     }
   });
 
-  await updateDoc(taskRef, safeUpdates);
+  await withTimeout(
+    updateDoc(taskRef, safeUpdates),
+    "Falha na sincronização da atualização (Timeout)."
+  );
 };
 
 export const completeTask = async (id: string, note?: string) => {
   const taskRef = doc(db, COLLECTION_NAME, id);
-  await updateDoc(taskRef, {
-    isCompleted: true,
-    completedAt: new Date().toISOString(),
-    completionNote: note || ""
-  });
+  await withTimeout(
+    updateDoc(taskRef, {
+      isCompleted: true,
+      completedAt: new Date().toISOString(),
+      completionNote: note || ""
+    }),
+    "Falha ao concluir missão (Timeout)."
+  );
 };
 
 export const deleteTask = async (id: string) => {
-  await deleteDoc(doc(db, COLLECTION_NAME, id));
+  await withTimeout(
+    deleteDoc(doc(db, COLLECTION_NAME, id)),
+    "Falha ao deletar missão (Timeout)."
+  );
 };
 
 // --- Subscriptions ---
@@ -116,7 +127,6 @@ export const subscribeToPendingTasks = (callback: (tasks: Task[], isOffline: boo
 
     callback(tasks, isOffline);
   }, (error) => {
-    console.error("Erro no subscribePending:", error);
     if (onError) onError(error);
   });
 };
@@ -133,7 +143,6 @@ export const subscribeToCompletedTasks = (callback: (tasks: Task[]) => void, onE
     tasks.sort((a, b) => dayjs(b.completedAt).unix() - dayjs(a.completedAt).unix());
     callback(tasks);
   }, (error) => {
-    console.error("Erro no subscribeCompleted:", error);
     if (onError) onError(error);
   });
 };
@@ -201,5 +210,4 @@ export const cleanupOldTasks = async () => {
   });
 
   await batch.commit();
-  console.log(`Limpeza automática: ${snapshot.size} tarefas antigas removidas.`);
 };

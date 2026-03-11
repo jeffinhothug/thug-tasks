@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "default": "thug-tasks-jeffinho"
+  },
   "targets": {},
   "etags": {}
 }

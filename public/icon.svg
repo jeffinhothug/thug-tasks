@@ -1,4 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="128" fill="#0ea5e9"/>
-  <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="350" fill="white">T</text>
+<svg width="512" height="512" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="100" rx="24" fill="#09090b" />
+  <path d="M35 40H65M50 40V70" stroke="#0369a1" strokeWidth="10" strokeLinecap="square" opacity="0.6"/>
+  <path d="M25 30H75M50 30V60" stroke="#38bdf8" strokeWidth="8" strokeLinecap="square" />
+  <path d="M50 20V25" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" />
+  <path d="M50 75V80" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" />
+  <path d="M20 50H25" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" />
+  <path d="M75 50H80" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" />
+  <rect x="48" y="48" width="4" height="4" fill="#7dd3fc" transform="rotate(45 50 50)" />
 </svg>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { signInAnonymously } from "firebase/auth";
+import { signOut } from "firebase/auth";
 import Sidebar from './components/Sidebar';
 import TaskCard from './components/TaskCard';
 import TaskForm from './components/TaskForm';
@@ -7,6 +7,12 @@ import CompleteModal from './components/CompleteModal';
 import QuickAddInput from './components/QuickAddInput';
 import StartupGuide from './components/StartupGuide';
 import MobileMenu from './components/MobileMenu';
+import Entrada from './components/Entrada';
+import SettingsView from './components/SettingsView';
+import NotificationMonitor from './components/NotificationMonitor';
+import { APP_VERSION } from './src/constants';
+import { useRegisterSW } from 'virtual:pwa-register/react';
+
 import {
   subscribeToPendingTasks,
   subscribeToCompletedTasks,
@@ -19,24 +25,26 @@ import {
   deleteTask
 } from './services/taskLogic';
 import { auth } from './services/firebase';
+import { requestNotificationPermission, sendBroadcastNotification } from './services/messaging';
 import { Task, NewTaskInput, TaskPriority } from './types';
 import { Search, Info, Menu } from 'lucide-react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 import Toast from './components/Toast';
 
-// Set locale globally
+// Configuração global do idioma
 dayjs.locale('pt-br');
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
+
+  const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'settings'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Data State
+  // Estado dos Dados
   const [pendingTasks, setPendingTasks] = useState<Task[]>([]);
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
 
-  // UI State
+  // Estado da UI
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [formInitialData, setFormInitialData] = useState<Partial<NewTaskInput>>({});
@@ -46,36 +54,64 @@ const App: React.FC = () => {
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // PWA Update Logic
+  const {
+    needRefresh: [needRefresh, setNeedRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegistered(r) {
+      console.log('SW Registered:', r);
+    },
+    onRegisterError(error) {
+      console.error('SW registration error', error);
+    },
+  });
+
+  const handleCheckForUpdates = () => {
+    if (needRefresh) {
+      updateServiceWorker(true);
+    } else {
+      // Força uma verificação manual se o navegador suportar
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then(registration => {
+          if (registration) {
+            registration.update().then(() => {
+              showToast("Verificando atualizações...");
+            });
+          }
+        });
+      } else {
+        showToast("Verificando atualizações...");
+      }
+    }
+  };
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
   };
 
-  const handleManualLogin = async () => {
-    try {
-      await signInAnonymously(auth);
-      showToast('Tentativa de conexão enviada...', 'success');
-    } catch (error: any) {
-      console.error(error);
-      const code = error.code || 'unknown';
-      showToast(`Erro de Auth (${code}): Verifique o Console do Firebase`, 'error');
-    }
+  const handleManualLogin = () => {
+    // Agora o login é feito via componente Entrada
+    setAuthUserId(null);
   };
 
-  // Initialization
+
+  // Inicialização
   useEffect(() => {
-    // 0. Auth Monitor
-    console.log("Thug Tasks App Mounting... v1.5-PC-Fix");
+    // 0. Monitor de Autenticação
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
       if (user) {
         setAuthUserId(user.uid);
+        // Solicita permissão e salva token se houver usuário
+        requestNotificationPermission(user.uid);
       } else {
         setAuthUserId(null);
-        showToast('⚠️ Usuário não autenticado', 'error');
       }
     });
 
-    // 1. Subscribe to data
+    // 1. Inscrição nos dados
     const unsubscribePending = subscribeToPendingTasks(
       (tasks, isOffline) => {
         setPendingTasks(tasks);
@@ -85,7 +121,7 @@ const App: React.FC = () => {
     );
     const unsubscribeCompleted = subscribeToCompletedTasks(setCompletedTasks);
 
-    // 2. Run maintenance
+    // 2. Executar manutenção
     const initMaintenance = async () => {
       await recalculateAllPriorities();
       await cleanupOldTasks();
@@ -104,11 +140,10 @@ const App: React.FC = () => {
   }, []);
 
 
-  // Notification Helper
+  // Auxiliar de Notificação
   const sendNotification = async (title: string, options?: NotificationOptions) => {
     try {
       if (!('Notification' in window)) {
-        console.warn("Navegador sem suporte a notificações.");
         return;
       }
 
@@ -134,8 +169,7 @@ const App: React.FC = () => {
         new Notification(title, enhancedOptions);
       }
     } catch (err) {
-      console.error("Erro ao notificar:", err);
-      // Fallback final
+      // Falha silenciosa ou log de produção se necessário
       new Notification(title, options);
     }
   };
@@ -145,24 +179,9 @@ const App: React.FC = () => {
       body: "Se você viu isso, suas notificações estão funcionando! 🔥",
       tag: "test-notification"
     });
-    showToast("Notificação de teste enviada!");
   };
 
-  const handleCheckForUpdates = async () => {
-    showToast("Verificando atualizações...", "success");
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (const registration of registrations) {
-        await registration.update();
-      }
-    }
-    // Força reload ignorando cache (true deprecated em alguns browsers modernos, mas mal não faz)
-    window.location.reload();
-  };
-
-
-
-  // Domain & Notification Check Hook
+  // Hook de Verificação de Domínio e Notificações
   useEffect(() => {
     // 1. Verificar se está no domínio correto (Evita versões antigas/links errados)
     const currentHost = window.location.hostname;
@@ -215,11 +234,7 @@ const App: React.FC = () => {
         }
 
         if (shouldNotify) {
-          sendNotification('Thug Tasks Alert', {
-            body: message,
-            icon: '/icon.svg',
-            tag: `task-${task.id}`
-          });
+          sendBroadcastNotification('Thug Tasks Alert', message, authUserId!, 'task');
           localStorage.setItem(notifiedKey, 'true');
         }
       });
@@ -241,11 +256,7 @@ const App: React.FC = () => {
             body = 'Noite livre? Aproveite para revisar ou criar uma nova missão para amanhã.';
           }
 
-          sendNotification(title, {
-            body,
-            icon: '/icon.svg',
-            tag: 'engagement-daily'
-          });
+          sendBroadcastNotification(title, body, authUserId!, 'engagement');
           localStorage.setItem(engagementKey, 'true');
         }
       }
@@ -257,7 +268,7 @@ const App: React.FC = () => {
     return () => clearInterval(timer);
   }, [pendingTasks]);
 
-  // Filter Logic
+  // Lógica de Filtro
   const filterTasks = (tasks: Task[]) => {
     if (!searchTerm) return tasks;
     const lower = searchTerm.toLowerCase();
@@ -267,7 +278,7 @@ const App: React.FC = () => {
     );
   };
 
-  // Handlers
+  // Manipuladores (Handlers)
   const handleNewTask = () => {
     setEditingTaskId(null);
     setFormInitialData({});
@@ -287,6 +298,8 @@ const App: React.FC = () => {
   };
 
   const handleSubmitTask = async (input: NewTaskInput) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
     try {
       if (editingTaskId) {
         await updateTask(editingTaskId, input);
@@ -298,13 +311,16 @@ const App: React.FC = () => {
       setIsFormOpen(false);
       setEditingTaskId(null);
     } catch (error) {
-      console.error(error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       showToast(`Erro ao salvar: ${errorMessage}`, 'error');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleQuickAdd = async (title: string, dueDate: string) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
     try {
       await addTask({
         title,
@@ -313,9 +329,10 @@ const App: React.FC = () => {
       });
       showToast('Missão adicionada!');
     } catch (error) {
-      console.error(error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       showToast(`Erro ao criar rápida: ${errorMessage}`, 'error');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -324,13 +341,16 @@ const App: React.FC = () => {
   };
 
   const handleDeleteTask = async (id: string) => {
+    if (isProcessing) return;
     if (confirm('Tem certeza que deseja explodir essa missão?')) {
+      setIsProcessing(true);
       try {
         await deleteTask(id);
         showToast('Missão abortada (deletada)!');
       } catch (error) {
-        console.error("Erro ao deletar:", error);
         showToast('Erro ao deletar tarefa', 'error');
+      } finally {
+        setIsProcessing(false);
       }
     }
   };
@@ -340,17 +360,30 @@ const App: React.FC = () => {
   };
 
   const confirmComplete = async (id: string, note: string, createFollowUp: boolean) => {
+    if (isProcessing) return;
     if (completeModalTask) {
-      await completeTask(id, note);
-      showToast('Tarefa concluída!');
+      setIsProcessing(true);
+      try {
+        await completeTask(id, note);
+        showToast('Tarefa concluída!');
 
-      if (createFollowUp) {
-        setFormInitialData({
-          title: `Seguimento: ${completeModalTask.title}`,
-          description: `Ref: ${completeModalTask.title} concluída em ${dayjs().format('D MMM, YYYY')}. ${note}`,
-          isPinned: true
-        });
-        setTimeout(() => setIsFormOpen(true), 100);
+        // Feedback Tátil PWA: Vibrar curto ao concluir missão
+        if ('vibrate' in navigator) {
+          navigator.vibrate([100]);
+        }
+
+        if (createFollowUp) {
+          setFormInitialData({
+            title: `Seguimento: ${completeModalTask.title}`,
+            description: `Ref: ${completeModalTask.title} concluída em ${dayjs().format('D MMM, YYYY')}. ${note}`,
+            isPinned: true
+          });
+          setTimeout(() => setIsFormOpen(true), 100);
+        }
+      } catch (error) {
+        showToast('Erro ao concluir tarefa', 'error');
+      } finally {
+        setIsProcessing(false);
       }
     }
     setCompleteModalTask(null);
@@ -358,6 +391,10 @@ const App: React.FC = () => {
 
   const groupedCompleted = groupTasksByDate(filterTasks(completedTasks));
   const displayedPending = filterTasks(pendingTasks);
+
+  if (!authUserId) {
+    return <Entrada onAuthenticated={(uid) => setAuthUserId(uid)} />;
+  }
 
   return (
     <div className="flex min-h-screen bg-background text-zinc-100 overflow-hidden">
@@ -368,6 +405,8 @@ const App: React.FC = () => {
           onClose={() => setToast(null)}
         />
       )}
+
+      <NotificationMonitor userId={authUserId} />
 
       <Sidebar
         activeTab={activeTab}
@@ -383,10 +422,10 @@ const App: React.FC = () => {
         onCheckUpdates={handleCheckForUpdates}
       />
 
-      {/* Main Content */}
+      {/* Conteúdo Principal */}
       <main className="flex-1 h-screen overflow-y-auto relative pb-20 md:pb-0 md:pl-0">
 
-        {/* Mobile Header with Search */}
+        {/* Cabeçalho Mobile com Busca */}
         <div className="md:hidden p-4 border-b border-zinc-800 sticky top-0 bg-background/90 backdrop-blur-md z-10 flex flex-col gap-3">
           <div className="flex justify-between items-center">
 
@@ -399,8 +438,8 @@ const App: React.FC = () => {
                 <Menu size={24} />
               </button>
               <div className="flex flex-col">
-                <span className="text-[10px] font-mono text-zinc-600">v1.5.2</span>
-                <span className={`text-[10px] font-bold ${authUserId ? "text-green-600" : "text-red-500"}`}>
+                <span className="text-[10px] font-bold font-mono text-zinc-300">v{APP_VERSION}</span>
+                <span className={`text-[10px] font-bold ${authUserId ? "text-green-500" : "text-red-500"}`}>
                   {authUserId ? "Online" : "Offline"}
                 </span>
               </div>
@@ -426,11 +465,13 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-4 md:p-8 max-w-7xl mx-auto pb-32">
+        <div className="p-4 md:p-8 max-w-7xl mx-auto pb-32 relative">
+          {/* Efeito de Gradiente UX Premium no topo (Desktop) */}
+          <div className="hidden md:block absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
 
           <header className="mb-8">
             <h1 className="text-3xl font-bold tracking-tight">
-              {activeTab === 'pending' ? 'Missões Pendentes' : 'Histórico'}
+              {activeTab === 'pending' ? 'Missões Pendentes' : activeTab === 'completed' ? 'Histórico' : 'Configurações'}
             </h1>
             <p className="text-zinc-500 mt-1">
               {activeTab === 'pending'
@@ -440,11 +481,21 @@ const App: React.FC = () => {
             </p>
           </header>
 
-          {activeTab === 'pending' ? (
+          {activeTab === 'settings' ? (
+            <SettingsView
+              version={APP_VERSION}
+              userId={authUserId}
+              onTestNotification={handleTestNotification}
+              onCheckUpdates={handleCheckForUpdates}
+              onOpenStartupGuide={() => setIsStartupGuideOpen(true)}
+            />
+          ) : activeTab === 'pending' ? (
             <>
-              <QuickAddInput onAdd={handleQuickAdd} />
+              <div className={isProcessing ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
+                <QuickAddInput onAdd={handleQuickAdd} />
+              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 ${isProcessing ? 'opacity-70' : ''}`}>
                 {displayedPending.length > 0 ? (
                   displayedPending.map(task => (
                     <TaskCard
@@ -501,11 +552,11 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* Floating Elements */}
-      {/* Floating Elements (Removido por solicitação) */}
+      {/* Elementos Flutuantes */}
+      {/* Elementos Flutuantes (Removido por solicitação) */}
       {/* <FloatingWidget tasks={pendingTasks} onNewTask={handleNewTask} /> */}
 
-      {/* Modals */}
+      {/* Modais */}
       <TaskForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
@@ -535,6 +586,7 @@ const App: React.FC = () => {
         onOpenStartupGuide={() => setIsStartupGuideOpen(true)}
         onTestNotification={handleTestNotification}
         onCheckUpdates={handleCheckForUpdates}
+        setActiveTab={setActiveTab}
       />
 
     </div>

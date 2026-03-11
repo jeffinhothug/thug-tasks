@@ -1,5 +1,8 @@
 import React from 'react';
-import { X, MonitorPlay, Bell, LogIn, LogOut, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { X, Bell, LogIn, Wifi, WifiOff, RefreshCw, Settings } from 'lucide-react';
+import Logo from './Logo';
+import { APP_VERSION } from '../src/constants';
+
 
 interface MobileMenuProps {
     isOpen: boolean;
@@ -10,6 +13,7 @@ interface MobileMenuProps {
     onOpenStartupGuide: () => void;
     onTestNotification: () => void;
     onCheckUpdates: () => void;
+    setActiveTab: (tab: 'pending' | 'completed' | 'settings') => void;
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({
@@ -20,7 +24,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
     onManualLogin,
     onOpenStartupGuide,
     onTestNotification,
-    onCheckUpdates
+    onCheckUpdates,
+    setActiveTab
 }) => {
     return (
         <>
@@ -38,11 +43,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
             >
                 {/* Header */}
                 <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950/50">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg shadow-sky-900/50">
-                            <span className="font-bold text-white text-lg">T</span>
-                        </div>
-                        <span className="font-bold text-zinc-100 italic">Thug Tasks</span>
+                    <div className="flex items-center gap-3">
+                        <Logo size={32} />
+                        <span className="font-bold text-zinc-100 italic tracking-tight">Thug Tasks</span>
                     </div>
                     <button onClick={onClose} className="text-zinc-400 hover:text-white">
                         <X size={24} />
@@ -86,44 +89,18 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
                     {/* Actions */}
                     <div className="space-y-2">
-                        <span className="text-xs text-zinc-500 font-mono px-1">FERRAMENTAS</span>
+                        <span className="text-xs text-zinc-500 font-mono px-1">NAVEGAÇÃO</span>
 
                         <button
-                            onClick={() => { onTestNotification(); onClose(); }}
-                            className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 text-zinc-200 hover:bg-zinc-800 border border-zinc-800/50"
-                        >
-                            <div className="p-2 bg-purple-500/10 rounded-md text-purple-400">
-                                <Bell size={18} />
-                            </div>
-                            <div className="flex flex-col items-start">
-                                <span className="text-sm font-medium">Testar Notificações</span>
-                                <span className="text-[10px] text-zinc-500">Enviar alerta de teste</span>
-                            </div>
-                        </button>
-
-                        <button
-                            onClick={() => { onOpenStartupGuide(); onClose(); }}
+                            onClick={() => { setActiveTab('settings'); onClose(); }}
                             className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 text-zinc-200 hover:bg-zinc-800 border border-zinc-800/50"
                         >
                             <div className="p-2 bg-sky-500/10 rounded-md text-sky-400">
-                                <MonitorPlay size={18} />
+                                <Settings size={18} />
                             </div>
                             <div className="flex flex-col items-start">
-                                <span className="text-sm font-medium">Iniciar c/ Windows</span>
-                                <span className="text-[10px] text-zinc-500">Configurar auto-start</span>
-                            </div>
-                        </button>
-
-                        <button
-                            onClick={() => { onCheckUpdates(); onClose(); }}
-                            className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 text-zinc-200 hover:bg-zinc-800 border border-zinc-800/50"
-                        >
-                            <div className="p-2 bg-emerald-500/10 rounded-md text-emerald-400">
-                                <RefreshCw size={18} />
-                            </div>
-                            <div className="flex flex-col items-start">
-                                <span className="text-sm font-medium">Buscar Atualizações</span>
-                                <span className="text-[10px] text-zinc-500">Forçar recarregamento</span>
+                                <span className="text-sm font-medium">Configurações</span>
+                                <span className="text-[10px] text-zinc-500">Ajustes e Ferramentas</span>
                             </div>
                         </button>
                     </div>
@@ -131,7 +108,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
                 {/* Footer */}
                 <div className="p-4 border-t border-zinc-800 text-center">
-                    <span className="text-[10px] text-zinc-600 font-mono">v1.5.2</span>
+                    <span className="text-[10px] text-zinc-300 font-bold font-mono">v{APP_VERSION}</span>
+
                 </div>
             </div>
         </>

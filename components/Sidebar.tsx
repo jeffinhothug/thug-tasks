@@ -1,9 +1,12 @@
 import React from 'react';
-import { LayoutList, CheckSquare, Plus, Search, MonitorPlay, Bell, RefreshCw } from 'lucide-react';
+import { LayoutList, CheckSquare, Plus, Search, MonitorPlay, Bell, RefreshCw, Settings } from 'lucide-react';
+import Logo from './Logo';
+import { APP_VERSION } from '../src/constants';
+
 
 interface Props {
-  activeTab: 'pending' | 'completed';
-  setActiveTab: (tab: 'pending' | 'completed') => void;
+  activeTab: 'pending' | 'completed' | 'settings';
+  setActiveTab: (tab: 'pending' | 'completed' | 'settings') => void;
   onNewTask: () => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -22,10 +25,8 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
     <div className="fixed bottom-0 left-0 w-full h-16 bg-zinc-950/90 border-t border-zinc-800 flex flex-row items-center justify-around z-40 backdrop-blur-xl md:w-64 md:h-screen md:bg-black/50 md:border-t-0 md:border-r md:flex-col md:justify-start md:items-stretch md:static md:z-20">
 
       {/* Brand - Hidden on Mobile, Visible Desktop */}
-      <div className="hidden md:flex h-16 items-center justify-start px-6 border-b border-zinc-800 relative">
-        <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg shadow-sky-900/50">
-          <span className="font-bold text-white text-lg">T</span>
-        </div>
+      <div className="hidden md:flex h-20 items-center justify-start px-6 border-b border-zinc-800/50 relative">
+        <Logo size={40} className="drop-shadow-[0_0_8px_rgba(56,189,248,0.2)]" />
         <span className="ml-3 font-bold text-zinc-100 tracking-tight">THUG TASKS</span>
         {isOffline && (
           <span className="absolute top-4 right-4 w-2 h-2 rounded-full bg-orange-500 animate-pulse" title="Modo Offline (Sem Sincronização)" />
@@ -73,31 +74,16 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
           <span className="text-[10px] md:text-base font-medium md:font-medium">Concluídas</span>
         </button>
 
-        <button
-          onClick={onOpenStartupGuide}
-          className="hidden md:flex flex-row items-center justify-start gap-3 p-3 w-full text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 rounded-lg transition-colors mt-auto"
-        >
-          <MonitorPlay size={20} />
-          <span className="text-base font-medium">Iniciar c/ PC</span>
-        </button>
 
         <button
-          onClick={onTestNotification}
-          className="hidden md:flex flex-row items-center justify-start gap-3 p-3 w-full text-zinc-600 hover:text-zinc-200 hover:bg-zinc-900/50 rounded-lg transition-colors"
-          title="Testar Notificações"
+          onClick={() => setActiveTab('settings')}
+          className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-colors md:flex-row md:justify-start md:gap-3 md:p-3 md:w-full ${activeTab === 'settings' ? 'text-sky-500 md:bg-zinc-800 md:text-white' : 'text-zinc-500 hover:text-zinc-300 md:hover:bg-zinc-900'
+            }`}
         >
-          <Bell size={18} />
-          <span className="text-sm font-medium">Testar Alerta</span>
+          <Settings size={22} className="md:w-5 md:h-5" />
+          <span className="text-[10px] md:text-base font-medium md:font-medium">Configurações</span>
         </button>
 
-        <button
-          onClick={onCheckUpdates}
-          className="hidden md:flex flex-row items-center justify-start gap-3 p-3 w-full text-zinc-600 hover:text-emerald-400 hover:bg-zinc-900/50 rounded-lg transition-colors"
-          title="Buscar Atualizações (Recarregar)"
-        >
-          <RefreshCw size={18} />
-          <span className="text-sm font-medium">Atualizar App</span>
-        </button>
       </nav>
 
       {/* Search - Only visible on desktop here */}
@@ -117,9 +103,10 @@ const Sidebar: React.FC<Props> = ({ activeTab, setActiveTab, onNewTask, searchTe
             ⚠️ Offline / Não Sincronizado
           </div>
         )}
-        <div className="mt-2 text-[9px] text-zinc-800 font-mono text-center flex flex-col gap-1">
-          <span className="opacity-50">v1.5.2</span>
-          <span className={authUserId ? "text-green-800" : "text-red-500 font-bold"}>
+        <div className="mt-2 text-[10px] font-mono text-center flex flex-col gap-1">
+          <span className="text-zinc-400 font-bold">v{APP_VERSION}</span>
+
+          <span className={authUserId ? "text-green-700" : "text-red-500 font-bold"}>
             {authUserId ? `User: ${authUserId.slice(0, 5)}...` : 'NÃO AUTENTICADO'}
           </span>
         </div>
