@@ -21,3 +21,28 @@
     @apply bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors;
   }
 }
+
+@layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-xl;
+  }
+  
+  .glass-dark {
+    @apply bg-black/40 backdrop-blur-xl border border-zinc-800/50 shadow-2xl;
+  }
+
+  .thug-button {
+    @apply transition-all duration-300 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+}
+
+/* Animações Thug Style */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}

@@ -14,12 +14,7 @@ import { requestNotificationPermission, sendBroadcastNotification } from '../ser
 import { db } from '../services/firebase';
 import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 
-interface NotificationSettings {
-    system: boolean;
-    tasks: boolean;
-    engagement: boolean;
-    sounds: boolean;
-}
+import { NotificationSettings } from '../types';
 
 interface SettingsViewProps {
     version: string;
@@ -46,7 +41,9 @@ const SettingsView: React.FC<SettingsViewProps> = ({
         system: true,
         tasks: true,
         engagement: true,
-        sounds: true
+        sounds: true,
+        volume: 0.8,
+        lastUpdated: Date.now()
     });
     const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 

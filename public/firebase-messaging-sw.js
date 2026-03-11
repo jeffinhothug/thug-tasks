@@ -2,14 +2,16 @@
 importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
 
-firebase.initializeApp({
-  apiKey: "AIzaSyDaVSC2sYNvcfSK0dVcAG-JYREZ_ObVlG4",
-  authDomain: "thug-tasks-jeffinho.firebaseapp.com",
-  projectId: "thug-tasks-jeffinho",
-  storageBucket: "thug-tasks-jeffinho.firebasestorage.app",
-  messagingSenderId: "571030014512",
-  appId: "1:571030014512:web:1319de39fec34cf4253bf5"
-});
+const firebaseConfig = {
+  apiKey: "__VITE_FIREBASE_API_KEY__",
+  authDomain: "__VITE_FIREBASE_AUTH_DOMAIN__",
+  projectId: "__VITE_FIREBASE_PROJECT_ID__",
+  storageBucket: "__VITE_FIREBASE_STORAGE_BUCKET__",
+  messagingSenderId: "__VITE_FIREBASE_MESSAGING_SENDER_ID__",
+  appId: "__VITE_FIREBASE_APP_ID__"
+};
+
+firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
 

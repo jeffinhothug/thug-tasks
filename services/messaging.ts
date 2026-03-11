@@ -1,6 +1,7 @@
 import { messaging, db } from "./firebase";
 import { getToken } from "firebase/messaging";
 import { doc, updateDoc, arrayUnion, addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { NotificationBroadcast } from "../types";
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 

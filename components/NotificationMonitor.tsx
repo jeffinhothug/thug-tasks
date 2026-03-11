@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { doc, collection, query, orderBy, limit, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from '../services/firebase';
+import { NotificationSettings, NotificationBroadcast } from '../types';
 
 interface NotificationMonitorProps {
   userId: string;
@@ -8,11 +9,13 @@ interface NotificationMonitorProps {
 
 const NotificationMonitor: React.FC<NotificationMonitorProps> = ({ userId }) => {
   const isFirstLoad = useRef(true);
-  const settingsRef = useRef({
+  const settingsRef = useRef<NotificationSettings>({
     system: true,
     tasks: true,
     engagement: true,
-    sounds: true
+    sounds: true,
+    volume: 0.5,
+    lastUpdated: new Date().toISOString()
   });
 
   useEffect(() => {
@@ -40,7 +43,7 @@ const NotificationMonitor: React.FC<NotificationMonitorProps> = ({ userId }) => 
 
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
-          const data = change.doc.data();
+          const data = change.doc.data() as NotificationBroadcast;
           const category = data.type || 'system';
           
           // Filtro Global Thug Style (v2.2)
@@ -48,7 +51,7 @@ const NotificationMonitor: React.FC<NotificationMonitorProps> = ({ userId }) => 
             (category === 'system' && settingsRef.current.system) ||
             (category === 'task' && settingsRef.current.tasks) ||
             (category === 'engagement' && settingsRef.current.engagement) ||
-            (category === 'broadcast'); // Broadcast sempre passa por ser alerta crítico
+            (data.type === ('broadcast' as any)); // Broadcast sempre passa por ser alerta crítico
 
           if (!isAllowed) {
             console.log(`[NotificationMonitor] Notificação da categoria '${category}' bloqueada pelas preferências globais.`);

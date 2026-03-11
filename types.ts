@@ -25,3 +25,23 @@ export interface GroupedCompletedTasks {
     [month: string]: Task[];
   };
 }
+
+export interface NotificationSettings {
+  system: boolean;
+  tasks: boolean;
+  engagement: boolean;
+  sounds: boolean;
+  volume: number;
+  lastUpdated: string;
+}
+
+export interface NotificationBroadcast {
+  id: string;
+  title: string;
+  body: string;
+  type: 'system' | 'task' | 'engagement';
+  createdAt: any; // Firestore Timestamp
+  senderId?: string;
+  icon?: string;
+  data?: Record<string, any>;
+}
