@@ -6,7 +6,7 @@ service cloud.firestore {
     // Apenas o usuário mestre tem acesso a qualquer documento
     match /{document=**} {
       // Permitir leitura e escrita para qualquer usuário autenticado com chave mestre
-      allow read, write: if request.auth != null;
+      allow read, write: if request.auth != null && request.auth.uid == 'UUO02HfjgtSPYzigI0Vt9QhfCO62';
     }
   }
 }
